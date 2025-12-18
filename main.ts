@@ -1,35 +1,44 @@
-controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
+controller.down.onEvent(ControllerButtonEvent.Pressed, function () {
     animation.runImageAnimation(
-    nena,
-    assets.animation`nena-animation-up`,
-    500,
-    false
+    noi,
+    assets.animation`myAnim`,
+    150,
+    true
+    )
+})
+// ANIMACIONES
+controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
+    animation.runImageAnimation(
+    noi,
+    assets.animation`myAnim1`,
+    150,
+    true
     )
 })
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     animation.runImageAnimation(
-    nena,
-    assets.animation`nena-animation-left`,
-    500,
-    false
+    noi,
+    assets.animation`myAnim2`,
+    150,
+    true
     )
 })
-controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
+controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
     animation.runImageAnimation(
-    nena,
-    assets.animation`nena-animation-right`,
-    500,
-    false
+    noi,
+    assets.animation`myAnim0`,
+    150,
+    true
     )
 })
-controller.down.onEvent(ControllerButtonEvent.Pressed, function () {
-    animation.runImageAnimation(
-    nena,
-    assets.animation`nena-animation-down`,
-    500,
-    false
-    )
-})
-let nena: Sprite = null
-nena = sprites.create(assets.image`nena-front`, SpriteKind.Player)
-controller.moveSprite(nena)
+let noi: Sprite = null
+// CREAR PERSONAJE
+noi = sprites.create(assets.image`nena-front`, SpriteKind.Player)
+// POSICIÓN INICIAL
+noi.setPosition(77, 57)
+// CARGAR EL TILEMAP (EL BOSQUE)
+tiles.setCurrentTilemap(tilemap`nivel3`)
+// LA CÁMARA SIGUE AL PERSONAJE
+scene.cameraFollowSprite(noi)
+// MOVIMIENTO SOLO HORIZONTAL
+controller.moveSprite(noi, 80, 80)
