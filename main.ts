@@ -1,4 +1,4 @@
-//  --- CÓDIGO INICIAL DEL USUARIO A CONTINUACIÓN ---
+//  --- CÓDIGO CORREGIDO Y COMPLETO ---
 //  ANIMACIONES
 controller.down.onEvent(ControllerButtonEvent.Pressed, function on_down_pressed() {
     animation.runImageAnimation(noi, assets.animation`
@@ -15,8 +15,9 @@ controller.left.onEvent(ControllerButtonEvent.Pressed, function on_left_pressed(
         myAnim2
         `, 150, false)
 })
-//  Manejador del botón A: solo llama al menú si está cerca del mercado
+//  Manejador del botón A: Llama al menú si la variable de cercanía es True
 controller.A.onEvent(ControllerButtonEvent.Pressed, function on_a_pressed() {
+    //  Usamos la variable de cercanía (que ahora se activa con el vecino)
     if (cerca_del_mercado) {
         menu_intercambio()
     }
@@ -35,6 +36,9 @@ function calcular_lena_necesaria(producto_str: string, cantidad: number): number
         return -1
     }
     
+    //  Reiniciamos variables para que funcione múltiples veces
+    i = 0
+    encontrado = false
     while (i <= PRODUCTOS.length - 1) {
         if (PRODUCTOS[i] == producto_str) {
             tasa = TASAS_VALORES[i]
@@ -49,10 +53,13 @@ function calcular_lena_necesaria(producto_str: string, cantidad: number): number
         return -1
     }
     
+    //  --- CORRECCIÓN DEL ERROR LÍNEA 49 ---
+    //  En lugar de .index_of() que da error en listas literales, usamos "in"
     if (["gallina", "cabra", "caballo", "patata", "huevos"].indexOf(producto_str) >= 0) {
         
     }
     
+    //  -------------------------------------
     total_lena = cantidad * tasa
     return total_lena
 }
@@ -60,6 +67,9 @@ function calcular_lena_necesaria(producto_str: string, cantidad: number): number
 function menu_intercambio() {
     
     controller.moveSprite(noi, 0, 0)
+    //  Reiniciamos variables para el menú
+    opciones_str = ""
+    j = 0
     while (j <= PRODUCTOS.length - 1) {
         opciones_str = "" + opciones_str + PRODUCTOS[j]
         if (j < PRODUCTOS.length - 1) {
@@ -69,13 +79,13 @@ function menu_intercambio() {
         j += 1
     }
     mensaje_pregunta_1 = "¿Qué quieres? (" + opciones_str + ")"
-    //  Si el usuario pulsa B aquí, sale de la función automáticamente
     eleccion_str = game.askForString(mensaje_pregunta_1)
     if (eleccion_str) {
         mensaje_pregunta_2 = "¿Cuántas unidades de " + eleccion_str + "?"
         cantidad2 = game.askForNumber(mensaje_pregunta_2)
         resultado = calcular_lena_necesaria(eleccion_str, cantidad2)
         if (resultado != -1) {
+            //  Redondeo simple para visualización si es necesario
             mensaje_resultado = "Necesitas " + ("" + ("" + resultado)) + " kg de leña de pino."
             game.splash(mensaje_resultado)
         }
@@ -83,7 +93,6 @@ function menu_intercambio() {
     }
     
     game.splash("¡Gracias por comerciar!")
-    //  Reactiva el movimiento del jugador al salir del menú
     controller.moveSprite(noi, 80, 80)
 }
 
@@ -96,20 +105,21 @@ let cantidad2 = 0
 let mensaje_pregunta_2 = ""
 let eleccion_str = ""
 let mensaje_pregunta_1 = ""
-let opciones_str = ""
 let j = 0
+let opciones_str = ""
 let total_lena = 0
-let encontrado = false
 let tasa = 0
+let encontrado = false
 let i = 0
 let cerca_del_mercado = false
 let noi : Sprite = null
 let TASAS_VALORES : number[] = []
 let PRODUCTOS : string[] = []
-//  --- DEFINICIÓN DE TASAS DE CONVERSIÓN ---
+//  --- DEFINICIÓN DE TASAS ---
 PRODUCTOS = ["gallina", "patata", "cabra", "huevos", "caballo"]
-TASAS_VALORES = [6, 1.33, 5, 3, 12]
-//  CREAR PERSONAJES y OBJETO
+TASAS_VALORES = [6, 1.33, 5, 0.25, 12]
+//  Huevos corregido a 0.25 (3kg/12uds)
+//  CREAR PERSONAJES
 noi = sprites.create(assets.image`
     nena-front
     `, SpriteKind.Player)
@@ -163,27 +173,45 @@ let mercado = sprites.create(img`
         .....64eee444c66f4e44e44e44e44ee66c444eee46.....
         ......6ccc666c66e4e44e44e44e44ee66c666ccc6......
         `, SpriteKind.Player)
-//  POSICIÓN DE LOS OBJETOS
+let vecino = sprites.create(img`
+        . . . . f f f f . . . . .
+        . . f f f f f f f f . . .
+        . f f f f f f c f f f . .
+        f f f f f f c c f f f c .
+        f f f c f f f f f f f c .
+        c c c f f f e e f f c c .
+        f f f f f e e f f c c f .
+        f f f b f e e f b f f f .
+        . f 4 1 f 4 4 f 1 4 f . .
+        . f e 4 4 4 4 4 4 e f . .
+        . f f f e e e e f f f . .
+        f e f b 7 7 7 7 b f e f .
+        e 4 f 7 7 7 7 7 7 f 4 e .
+        e e f 6 6 6 6 6 6 f e e .
+        . . . f f f f f f . . . .
+        . . . f f . . f f . . . .
+        `, SpriteKind.Player)
+//  POSICIÓN Y CONFIGURACIÓN
 noi.setPosition(130, 155)
 mercado.setPosition(130, 115)
+vecino.setPosition(140, 140)
 noi.z = 10
-//  CARGAR EL TILEMAP (EL BOSQUE)
 tiles.setCurrentTilemap(tilemap`
     nivel3
     `)
-//  LA CÁMARA SIGUE AL PERSONAJE
 scene.cameraFollowSprite(noi)
-//  MOVIMIENTO SOLO HORIZONTAL
 controller.moveSprite(noi, 80, 80)
-//  --- MANEJADORES DE EVENTOS ---
+//  --- LOOP PRINCIPAL MODIFICADO ---
+//  Se calcula la distancia al VECINO
 game.onUpdateInterval(100, function on_update_interval() {
     
-    dx = noi.x - mercado.x
-    dy = noi.y - mercado.y
+    //  CALCULAMOS DISTANCIA CON EL VECINO (no el mercado)
+    dx = noi.x - vecino.x
+    dy = noi.y - vecino.y
     distancia_cuadrada = dx * dx + dy * dy
-    if (distancia_cuadrada < 40 * 40) {
-        //  Usamos un radio de 40 píxeles
+    if (distancia_cuadrada < 10 * 10) {
         if (!cerca_del_mercado) {
+            //  Mensaje original
             game.splash("¡Pulsa A para comerciar!", "Al presionar luego seguidamente vuelvelo a presionar")
             cerca_del_mercado = true
         }
