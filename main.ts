@@ -120,6 +120,7 @@ let vecino = sprites.create(img`
     . . . f f . . f f . . . .
 `, SpriteKind.Player)
 vecino.setPosition(140, 140)
+vecino.z = 10
 //  Crear el Mercado
 let decorado_mercado = sprites.create(img`
     ....................e2e22e2e....................

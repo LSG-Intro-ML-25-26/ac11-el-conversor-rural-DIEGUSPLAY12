@@ -116,6 +116,7 @@ vecino = sprites.create(img("""
     . . . f f . . f f . . . .
 """), SpriteKind.player)
 vecino.set_position(140, 140)
+vecino.z = 10
 
 # Crear el Mercado
 decorado_mercado = sprites.create(img("""
