@@ -1,4 +1,5 @@
-//  --- CÓDIGO CORREGIDO Y COMPLETO ---
+let nuevo_arbol: Sprite;
+//  --- CÓDIGO CORREGIDO Y COMPLETO CON ÁRBOLES EN LAS ESQUINAS ---
 //  ANIMACIONES
 controller.down.onEvent(ControllerButtonEvent.Pressed, function on_down_pressed() {
     animation.runImageAnimation(noi, assets.animation`
@@ -17,7 +18,6 @@ controller.left.onEvent(ControllerButtonEvent.Pressed, function on_left_pressed(
 })
 //  Manejador del botón A: Llama al menú si la variable de cercanía es True
 controller.A.onEvent(ControllerButtonEvent.Pressed, function on_a_pressed() {
-    //  Usamos la variable de cercanía (que ahora se activa con el vecino)
     if (cerca_del_mercado) {
         menu_intercambio()
     }
@@ -36,7 +36,6 @@ function calcular_lena_necesaria(producto_str: string, cantidad: number): number
         return -1
     }
     
-    //  Reiniciamos variables para que funcione múltiples veces
     i = 0
     encontrado = false
     while (i <= PRODUCTOS.length - 1) {
@@ -53,13 +52,11 @@ function calcular_lena_necesaria(producto_str: string, cantidad: number): number
         return -1
     }
     
-    //  --- CORRECCIÓN DEL ERROR LÍNEA 49 ---
-    //  En lugar de .index_of() que da error en listas literales, usamos "in"
+    //  Validación segura con 'in' en lugar de index_of
     if (["gallina", "cabra", "caballo", "patata", "huevos"].indexOf(producto_str) >= 0) {
         
     }
     
-    //  -------------------------------------
     total_lena = cantidad * tasa
     return total_lena
 }
@@ -67,7 +64,6 @@ function calcular_lena_necesaria(producto_str: string, cantidad: number): number
 function menu_intercambio() {
     
     controller.moveSprite(noi, 0, 0)
-    //  Reiniciamos variables para el menú
     opciones_str = ""
     j = 0
     while (j <= PRODUCTOS.length - 1) {
@@ -85,7 +81,6 @@ function menu_intercambio() {
         cantidad2 = game.askForNumber(mensaje_pregunta_2)
         resultado = calcular_lena_necesaria(eleccion_str, cantidad2)
         if (resultado != -1) {
-            //  Redondeo simple para visualización si es necesario
             mensaje_resultado = "Necesitas " + ("" + ("" + resultado)) + " kg de leña de pino."
             game.splash(mensaje_resultado)
         }
@@ -118,7 +113,6 @@ let PRODUCTOS : string[] = []
 //  --- DEFINICIÓN DE TASAS ---
 PRODUCTOS = ["gallina", "patata", "cabra", "huevos", "caballo"]
 TASAS_VALORES = [6, 1.33, 5, 0.25, 12]
-//  Huevos corregido a 0.25 (3kg/12uds)
 //  CREAR PERSONAJES
 noi = sprites.create(assets.image`
     nena-front
@@ -191,18 +185,32 @@ let vecino = sprites.create(img`
         . . . f f f f f f . . . .
         . . . f f . . f f . . . .
         `, SpriteKind.Player)
-//  POSICIÓN Y CONFIGURACIÓN
+//  POSICIÓN Y CONFIGURACIÓN PERSONAJES
 noi.setPosition(130, 155)
 mercado.setPosition(130, 115)
 vecino.setPosition(140, 140)
 noi.z = 10
+//  --- NUEVO: AGREGAR ÁRBOLES EN LAS 4 ESQUINAS (OPCIÓN A) ---
+let imagen_arbol = assets.image`
+    forestTree0
+    `
+//  Lista de coordenadas [X, Y] para las 4 esquinas del mapa
+let coordenadas_arboles = [[20, 20], [50, 20], [20, 50], [40, 40], [235, 20], [205, 20], [235, 50], [215, 40], [20, 235], [50, 235], [20, 205], [40, 215], [235, 235], [205, 235], [235, 205], [215, 215]]
+//  Esquina Superior Izquierda (Aprox 0-50 px)
+//  Esquina Superior Derecha (Aprox 200-250 px)
+//  Esquina Inferior Izquierda (Aprox 0-50 px, Y=200+)
+//  Esquina Inferior Derecha (Aprox 200-250 px, Y=200+)
+for (let pos of coordenadas_arboles) {
+    nuevo_arbol = sprites.create(imagen_arbol, SpriteKind.Food)
+    nuevo_arbol.setPosition(pos[0], pos[1])
+}
+//  -----------------------------------------------------------
 tiles.setCurrentTilemap(tilemap`
     nivel3
     `)
 scene.cameraFollowSprite(noi)
 controller.moveSprite(noi, 80, 80)
-//  --- LOOP PRINCIPAL MODIFICADO ---
-//  Se calcula la distancia al VECINO
+//  --- LOOP PRINCIPAL ---
 game.onUpdateInterval(100, function on_update_interval() {
     
     //  CALCULAMOS DISTANCIA CON EL VECINO (no el mercado)
@@ -211,7 +219,6 @@ game.onUpdateInterval(100, function on_update_interval() {
     distancia_cuadrada = dx * dx + dy * dy
     if (distancia_cuadrada < 10 * 10) {
         if (!cerca_del_mercado) {
-            //  Mensaje original
             game.splash("¡Pulsa A para comerciar!", "Al presionar luego seguidamente vuelvelo a presionar")
             cerca_del_mercado = true
         }
